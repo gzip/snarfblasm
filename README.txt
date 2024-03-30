@@ -1,7 +1,7 @@
 snarfblASM 6502 Assembler
   by snarfblam
   
-Version 1.1
+Version 1.2
 http://snarfblam.com/words  
 snarfblam@snarfblam.com
   
@@ -13,12 +13,6 @@ snarfblasm sourceFile [destFile] [switches]
             Overflow checking in expressions
         -OFFSET:value
             value should be a decimal, $hex, or 0xhex offset to patch the dest file
-        -DOT[:OFF/ON]
-            Optional dots are enabled for directives (ON)
-        -COLON[:OFF/ON]
-            Optional colons are enabled for labels (ON)
-        -ASM6[:OFF/ON]
-            ASM6-like syntax (same as -DOT:ON -COLON:ON)
         -INVALID[:OFF/ON]
             Invalid opcodes are allowed (ON)
         -IPS[:OFF/ON]
