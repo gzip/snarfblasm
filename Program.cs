@@ -17,23 +17,9 @@ namespace snarfblasm
         [STAThread]
         static void Main(string[] args) {
 
-            // syntax: (name may change)
-            //     snarfblasm sourceFile [destFile] [-o | -os] [-i] [@offset]
-            //
-            //     sourceFile - Source ASM file
-            //     destFile   - Output file. If not specified, the output filename will be sourceFile changed to a .bin extension
-            //     @offset    - If specified, part of the file will be overwritten at the specified offset (otherwise the file is replaced). Dec or $Hex.
-            // Swithes
-            //     -o   Overflow checking
-            //     -os  Overflow checking (signed mode)
-            //     -i   Allow invalid opcodes
-            //     -d   Don't require dot on directive
-            //     -dbg Produce FCEUX debug symbol files
-
             if (args.Length == 1 && args[0].ToUpper() == "-DEBUG") {
                 args = Console.ReadLine().Split(',');
             }
-
 
             if (args.Length == 0|| string.IsNullOrEmpty(args[0].Trim())) {
                 ShowHelp();
@@ -49,19 +35,6 @@ namespace snarfblasm
                     if(exit) return;
                 }
 
-                if (switches.Asm6Mode == OnOffSwitch.ON) {
-                    Console.WriteLine("WARNING: ASM6 mode is no longer supported.");
-                    switches.Asm6Mode = null;
-                }
-                if (switches.ColonOptional == OnOffSwitch.ON) {
-                    Console.WriteLine("WARNING: Optional colon mode is no longer supported.");
-                    switches.ColonOptional = null;
-                }
-                if (switches.DotOptional == OnOffSwitch.ON) {
-                    Console.WriteLine("WARNING: Optional directive dot mode is no longer supported.");
-                    switches.DotOptional = null;
-                }
-
                 RunAssembler();
             }
 
@@ -70,9 +43,6 @@ namespace snarfblasm
             Console.ReadLine();
 #endif
         }
-
-
-
 
         private static void RunAssembler() {
             if (!FileReader.IsPseudoFile(sourceFile) && !fileSystem.FileExists(sourceFile)) {
@@ -153,14 +123,6 @@ namespace snarfblasm
         }
 
         private static void SetAssemblerOptions(Assembler asm) {
-            //if (dotNotRequired == true)
-            //    asm.RequireDotOnDirectives = false;
-            //if (overflow == true)
-            //    asm.OverflowChecking = OverflowChecking.Unsigned;
-            //if (overflowSigned == true)
-            //    asm.OverflowChecking = OverflowChecking.Signed;
-            //if (allowInvalid == true)
-            //    asm.AllowInvalidOpcodes = allowInvalid.Value;
             if (switches.DotOptional != null)
                 asm.RequireDotOnDirectives = (switches.DotOptional == OnOffSwitch.OFF);
             
@@ -223,12 +185,6 @@ namespace snarfblasm
                         ShowHelp();
                         return;
                     }
-                    ////} else if (arg[0] == '@') {
-                    ////    if (!ProcessOffset(arg)) {
-                    ////        ShowHelp();
-                    ////        exit = true;
-                    ////        return;
-                    ////    }
                 } else if (isFirstArg) {
                     ProcessDest(arg);
                 } else {
@@ -309,46 +265,6 @@ namespace snarfblasm
                         error = true;
                     }
                     break;
-                case "DOT":
-                    if (switches.DotOptional == null) {
-                        if (arg == null)
-                            switches.DotOptional = OnOffSwitch.ON;
-                        else
-                            switches.DotOptional = ParseOnOff(switchName, switchValue, out error);
-                    } else {
-                        ShowDuplicateSwitchError(switchName);
-                        error = true;
-                    }
-                    break;
-                case "COLON":
-                    if (switches.ColonOptional == null) {
-                        if (arg == null)
-                            switches.ColonOptional = OnOffSwitch.ON;
-                        else
-                            switches.ColonOptional = ParseOnOff(switchName, switchValue, out error);
-                    } else {
-                        ShowDuplicateSwitchError(switchName);
-                        error = true;
-                    }
-                    break;
-                case "ASM6":
-                    if (switches.Asm6Mode == null) {
-                        if (switchValue == null) {
-                            switches.Asm6Mode = OnOffSwitch.ON;
-                            switches.ColonOptional = OnOffSwitch.OFF;
-                            switches.DotOptional = OnOffSwitch.OFF;
-                        } else {
-                            switches.Asm6Mode = ParseOnOff(switchName, switchValue, out error);
-                            OnOffSwitch colonAndDotRequired = switches.Asm6Mode == OnOffSwitch.ON ? OnOffSwitch.OFF : OnOffSwitch.ON;
-                            switches.ColonOptional = colonAndDotRequired;
-                            switches.DotOptional = colonAndDotRequired;
-
-                        }
-                    } else {
-                        ShowDuplicateSwitchError(switchName);
-                        error = true;
-                    }
-                    break;
                 case "INVALID":
                     if (switches.InvalidOpsAllowed == null) {
                         if (switchValue == null)
@@ -391,36 +307,6 @@ namespace snarfblasm
             }
 
             return true;
-            ////arg = arg.Substring(1).ToUpper();
-            ////if (arg == "O") {
-            ////    if (overflow != null) {
-            ////        Console.WriteLine("Duplicate switch.");
-            ////        return false;
-            ////    }
-            ////    overflow = true;
-            ////} else if (arg == "OS") {
-            ////    if (overflowSigned != null) {
-            ////        Console.WriteLine("Duplicate switch.");
-            ////        return false;
-            ////    }
-            ////    overflowSigned = true;
-            ////} else if (arg == "I") {
-            ////    if (allowInvalid != null) {
-            ////        Console.WriteLine("Duplicate switch.");
-            ////        return false;
-            ////    }
-            ////    allowInvalid = true;
-            ////} else if (arg == "D") {
-            ////    if (dotNotRequired != null) {
-            ////        Console.WriteLine("Duplicate switch.");
-            ////        return false;
-            ////    }
-            ////    dotNotRequired = true;
-            ////} else {
-            ////    Console.WriteLine("Unrecognized switch.");
-            ////    return false;
-            ////}
-            ////return true;
         }
 
         private static OnOffSwitch? ParseOnOff(string switchName, string value, out bool invalid) {
@@ -454,7 +340,7 @@ namespace snarfblasm
                     switches.Checking = OverflowChecking.Signed;
                     break;
                 default:
-                    Console.WriteLine("Value " + value + " is invalid for -CHEKCING");
+                    Console.WriteLine("Value " + value + " is invalid for -CHECKING");
                     Console.WriteLine();
                     ShowHelp();
 
@@ -504,7 +390,6 @@ namespace snarfblasm
         }
         #endregion
 
-
         const string HelpText = 
 @"snarfblASM 6502 assembler - syntax
     snarfblasm sourceFile [destFile] [switches]
@@ -515,12 +400,6 @@ namespace snarfblasm
         -OFFSET:value
             value should be a decimal, $hex, or 0xhex offset to 
             patch the dest file
-        -DOT[:OFF/ON]
-            Optional dots are enabled for directives (ON)
-        -COLON[:OFF/ON]
-            Optional colons are enabled for labels (ON)
-        -ASM6[:OFF/ON]
-            ASM6-like syntax (same as -DOT:ON -COLON:ON)
         -INVALID[:OFF/ON]
             Invalid opcodes are allowed (ON)
         -IPS[:OFF/ON]
@@ -530,31 +409,18 @@ namespace snarfblasm
 
     Example: snarfblasm source.asm -CHECKING:ON -ASM6 -IPS:OFF
 ";
+        static bool helpShown = false;
+          
         private static void ShowHelp() {
-
-            Console.WriteLine(HelpText);
-            ////Console.WriteLine("syntax: snarfblasm sourceFile [destFile] [-o | -os] [-i] [@offset]");
-            ////Console.WriteLine("example: snarfblasm asmHack.asm someRom.nes -i @$1C010");
-            ////Console.WriteLine("");
-            ////Console.WriteLine("    sourceFile - Source ASM file");
-            ////Console.WriteLine("    destFile   - Destination file");
-            ////Console.WriteLine("    offset     - Destination offset (decimal or $hex). If specified, part of dest file is overwritten.");
-            ////Console.WriteLine("Switches:");
-            ////Console.WriteLine("    -o    Overflow checking");
-            ////Console.WriteLine("    -os   Overflow checking (signed)");
-            ////Console.WriteLine("    -i    Allow invalid opcodes");
+            if (!helpShown)
+              Console.WriteLine(HelpText);
+            helpShown = true;
         }
 
         static FileReader fileSystem = new FileReader();
 
         static string sourceFile;
         static string destFile;
-
-        ////static bool? overflow;
-        ////static bool? dotNotRequired;
-        ////static bool? overflowSigned;
-        ////static int? offset;
-        ////static bool? allowInvalid;
 
         class FileReader : IFileSystem
         {
@@ -573,7 +439,6 @@ namespace snarfblasm
                 }
             }
 
-
             public void WriteFile(string filename, byte[] data) {
                 if (filename.Equals(Psuedo_Form, StringComparison.InvariantCultureIgnoreCase)) {
                     TextForm.GetText(Romulus.Hex.FormatHex(data));
@@ -583,18 +448,7 @@ namespace snarfblasm
                     else
                         Clipboard.SetText(Romulus.Hex.FormatHex(data));
                 } else {
-                    // Derp - switches.PatchOffset shouldn't be handled here
-
-                    ////if (switches.PatchOffset == null) {
-                        File.WriteAllBytes(filename, data);
-                    ////} else {
-                    ////    using (var file = File.Open(filename, FileMode.Open)) {
-                    ////        file.Seek(switches.PatchOffset.Value, SeekOrigin.Begin);
-
-                    ////        BinaryWriter w = new BinaryWriter(file);
-                    ////        w.Write(data);
-                    ////    }
-                    ////}
+                    File.WriteAllBytes(filename, data);
                 }
             }
 
@@ -658,7 +512,6 @@ namespace snarfblasm
 
     }
 
-
     struct ProgramSwitches
     {
         public int? PatchOffset;
@@ -672,12 +525,6 @@ namespace snarfblasm
 
     }
 
-    //enum CheckingSwitch
-    //{
-    //    OFF,
-    //    ON,
-    //    SIGNED
-    //}
     enum OnOffSwitch
     {
         ON,
