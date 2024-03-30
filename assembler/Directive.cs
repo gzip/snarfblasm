@@ -897,42 +897,8 @@ class ErrorDirective : Directive
                 case "SIGNED":
                     SetSigned(pass, ref error);
                     break;
-                case "NEEDDOT":
-                    SetNeedDot(pass, ref error);
-                    break;
-                case "NEEDCOLON":
-                    SetNeedColon(pass, ref error);
-                    break;
                 default:
                     error = new Error(ErrorCode.Engine_Error, "OptionDirective was parsed with an invalid option name: " + name, SourceLine);
-                    break;
-            }
-        }
-
-        private void SetNeedColon(Pass pass, ref Error error) {
-            switch (option) {
-                case "ON":
-                    pass.Assembler.RequireColonOnLabels = true;
-                    break;
-                case "OFF":
-                    pass.Assembler.RequireColonOnLabels = false;
-                    break;
-                default:
-                    error = GetInvalidValueError(error);
-                    break;
-            }
-        }
-
-        private void SetNeedDot(Pass pass, ref Error error) {
-            switch (option) {
-                case "ON":
-                    pass.Assembler.RequireDotOnDirectives = true;
-                    break;
-                case "OFF":
-                    pass.Assembler.RequireDotOnDirectives = false;
-                    break;
-                default:
-                    error = GetInvalidValueError(error);
                     break;
             }
         }

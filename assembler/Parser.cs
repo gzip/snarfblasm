@@ -110,57 +110,30 @@ namespace snarfblasm
                 return;
             }
 
+            var symbol = GrabIdentifier(ref line);
+            //var symbol = GrabSimpleName(ref line);
+            // if (symbol.IsEmpty) break;
+            line = line.TrimLeft();
 
+            if (ParseDirective(symbol, line, iSourceLine, out error))
+                return;
+            else if (symbol.IsSimple && ParseInstruction(symbol.name, line, iSourceLine, out error)) {
+                return;
+            } else if ((line.Length > 0 && line[0] == '=') || (line.Length > 1 && line[0] == ':' && line[1] == '=')) { // Assignments and label assignments
+                // := is a cross between a label and assignment: It declares a label with an explicit value.
+                bool isLabel = (line[0] == ':');
 
-            bool parsedUncolonedLabel = false; // Set to true when an uncoloned label is found so we don't look for one again.
-            bool loopAgain = false; // Set to true when an uncoloned label is found to loop back and try to parse the remaining text
-            do {
-                loopAgain = false;
+                var expression = line.Substring(1).TrimLeft();
+                if (isLabel) expression = expression.Substring(1).TrimLeft();
 
-                var symbol = GrabIdentifier(ref line);
-                //var symbol = GrabSimpleName(ref line);
-                // if (symbol.IsEmpty) break;
-                line = line.TrimLeft();
-
-                if (ParseDirective(symbol, line, iSourceLine, out error))
-                    return;
-                else if (symbol.IsSimple && ParseInstruction(symbol.name, line, iSourceLine, out error)) {
-                    return;
-                } else if ((line.Length > 0 && line[0] == '=') || (line.Length > 1 && line[0] == ':' && line[1] == '=')) { // Assignments and label assignments
-                    // := is a cross between a label and assignment: It declares a label with an explicit value.
-                    bool isLabel = (line[0] == ':');
-
-                    var expression = line.Substring(1).TrimLeft();
-                    if (isLabel) expression = expression.Substring(1).TrimLeft();
-
-                    if (expression.IsNullOrEmpty) {
-                        error = new Error(ErrorCode.Expected_Expression, Error.Msg_ExpectedValue, iSourceLine);
-                    } else {
-                        ParseAssignment(symbol, isLabel, expression, iSourceLine);
-                    }
+                if (expression.IsNullOrEmpty) {
+                    error = new Error(ErrorCode.Expected_Expression, Error.Msg_ExpectedValue, iSourceLine);
                 } else {
-                    // Todo: ensure 'symbol' is a valid label name
-                    //var labelName = GrabLabelName(ref symbol, false);
-                    var symbolName = symbol.name ?? "";
-
-                    if (!Assembler.RequireColonOnLabels && !parsedUncolonedLabel && symbolName.Length > 0) {
-                        if (symbol.IsSimple && symbolName[0] == '@') {
-                            var fullName = new Identifier(mostRecentNamedLabel.name + "." + symbol.name, mostRecentNamedLabel.nspace);
-                            assembly.Labels.Add(new NamespacedLabel(fullName, newInstructionIndex, iSourceLine, true));
-                        } else {
-                            // Todo: something feels off here. Shouldn't the label be placed in the current namespace? But that's not evaluated until the actual assembly step...
-                            mostRecentNamedLabel = symbol;// symbol.ToString();
-                            //var nspace = string.IsNullOrEmpty(symbol.nspace) ? null : symbol.nspace;
-                            assembly.Labels.Add(new NamespacedLabel(symbol, newInstructionIndex, iSourceLine, false));
-                        }
-                        parsedUncolonedLabel = true;
-                        loopAgain = true;
-
-                    } else {
-                        error = new Error(ErrorCode.Unexpected_Text, Error.Msg_BadLine, iSourceLine);
-                    }
+                    ParseAssignment(symbol, isLabel, expression, iSourceLine);
                 }
-            } while (parsedUncolonedLabel && loopAgain);
+            } else {
+                error = new Error(ErrorCode.Unexpected_Text, Error.Msg_BadLine, iSourceLine);
+            }
         }
 
         private void ParseDefsegLine(StringSection line, int iSourceLine, out Error error) {

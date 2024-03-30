@@ -59,10 +59,6 @@ namespace snarfblasm
                 _OverflowChecking = value;
             }
         }
-        /// <summary>If false, failure to preceed a directive with a dot (".") will result in an error. (Set to false for ASM6 compatability.)</summary>
-        public bool RequireDotOnDirectives { get { return _RequireDotOnDirectives; } set { Require_BeforeAssemble(); _RequireDotOnDirectives = value; } }
-        public bool RequireColonOnLabels { get; set; }
-
 
         #endregion
 

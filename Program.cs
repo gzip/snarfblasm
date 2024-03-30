@@ -55,14 +55,8 @@ namespace snarfblasm
             AddressLabels asmLabels = new AddressLabels();
             asm.Labels = asmLabels;
 
-            // Todo: temp, for testing
-            asm.RequireColonOnLabels = false;
-            asm.RequireDotOnDirectives = false;
-
             asm.PhaseComplete += new EventHandler<Assembler.PhaseEventArgs>(asm_PhaseComplete);
             asm.PhaseStarted += new EventHandler<Assembler.PhaseEventArgs>(asm_PhaseStarted);
-
-            SetAssemblerOptions(asm);
 
             var output = asm.Assemble();
             if (output == null) {
@@ -122,11 +116,6 @@ namespace snarfblasm
             }
         }
 
-        private static void SetAssemblerOptions(Assembler asm) {
-            if (switches.DotOptional != null)
-                asm.RequireDotOnDirectives = (switches.DotOptional == OnOffSwitch.OFF);
-            
-        }
         private static byte[] CreateIPSFile(byte[] output, IList<Romulus.PatchSegment> segments) {
             var ips = new IPS.Builder();
 
@@ -516,13 +505,9 @@ namespace snarfblasm
     {
         public int? PatchOffset;
         public OverflowChecking? Checking;
-        public OnOffSwitch? DotOptional;
-        public OnOffSwitch? ColonOptional;
-        public OnOffSwitch? Asm6Mode;
         public OnOffSwitch? InvalidOpsAllowed;
         public OnOffSwitch? IpsOutput;
         public OnOffSwitch? DebugOutput;
-
     }
 
     enum OnOffSwitch
