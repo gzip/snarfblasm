@@ -596,6 +596,33 @@ namespace snarfblasm
             if (exp[0] == '(') {
                 RValue = EvaluateParentheses(ref exp, out error);
                 return;
+            } else if (exp[0] == '#') {
+                exp = exp.Substring(1); // Remove #
+                if (exp[0] == '$') {
+                    // This can be a hex number ($12AB, or the current address: simply $)
+                    exp = exp.Substring(1); // Remove $
+
+                    StringSection hexString = GetHexString(exp);
+                    exp = exp.Substring(hexString.Length).TrimLeft(); // Remove number
+                    RValue = ParseHex(hexString, out error);
+                    return;
+                } else if (exp[0] == '%') {
+                    exp = exp.Substring(1); // Remove %
+
+                    StringSection binString = GetBinString(exp);
+                    if (binString.Length == 0)
+                        goto GOTO_InvalidNumber;
+                    exp = exp.Substring(binString.Length).TrimLeft(); // Remove number
+                    RValue = ParseBin(binString, out error);
+                    return;
+                } else if (char.IsDigit(exp[0])) {
+                    StringSection decString = GetDecString(exp);
+                    if (decString.Length == 0)
+                        goto GOTO_InvalidNumber;
+                    exp = exp.Substring(decString.Length).TrimLeft(); // Remove number
+                    RValue = ParseDec(decString, out error);
+                    return;
+                }
             }else if (exp[0] == '$') {
                 // This can be a hex number ($12AB, or the current address: simply $)
                 exp = exp.Substring(1); // Remove $
