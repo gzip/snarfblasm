@@ -64,7 +64,7 @@ namespace snarfblasm
 
         #region Fields
 
-        // Assembling objects 
+        // Assembling objects
         Parser parser;
         ExpressionEvaluator evaluator;
         AssemblyData assembly;
@@ -87,10 +87,10 @@ namespace snarfblasm
         public event EventHandler<PhaseEventArgs> PhaseComplete;
         public event EventHandler<PhaseEventArgs> PhaseStarted;
         private void OnPhaseComplete(string msg, AssemblerPhase phase) {
-            PhaseComplete.Raise(this, new PhaseEventArgs(msg, phase));
+            //PhaseComplete.Raise(this, new PhaseEventArgs(msg, phase));
         }
         private void OnPhaseStart(string msg, AssemblerPhase phase) {
-            PhaseStarted.Raise(this, new PhaseEventArgs(msg, phase));
+            //PhaseStarted.Raise(this, new PhaseEventArgs(msg, phase));
         }
 
         public class PhaseEventArgs : EventArgs
@@ -158,7 +158,7 @@ namespace snarfblasm
             } else {
                 OnPhaseComplete("Done.", AssemblerPhase.FirstPass);
             }
-            
+
             OnPhaseStart("Second pass...", AssemblerPhase.FinalPass);
             PerformPass(new SecondPass(this));
             if (Errors.Count > 0) {
@@ -235,10 +235,11 @@ namespace snarfblasm
         public Romulus.Plugin.IAddressLabels Labels { get; set; }
         public void AddDebugLabel(int bank, int address, string name) {
             if (Labels != null) {
-                if (bank < 0)
+                if (bank < 0) {
                     Labels.Ram.AddLabel((ushort)address, name);
-                else
-                    Labels.Banks[bank].AddLabel((ushort)address, name,name);
+                } else {
+                    Labels.Banks[bank].AddLabel((ushort)address, name);
+                }
             }
         }
 ////#else
@@ -263,7 +264,7 @@ namespace snarfblasm
         Signed
     }
 
-  
+
 }
 
 namespace Romulus

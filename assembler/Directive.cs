@@ -64,8 +64,8 @@ namespace snarfblasm
             }
         }
 
-        
-        
+
+
         ////public static Assignment Parse(int instructionIndex, int sourceLine, StringSection line) {
         ////    int iEquals = line.IndexOf('=');
         ////    StringSection varName = line.Substring(0, iEquals).Trim();
@@ -206,7 +206,7 @@ class ErrorDirective : Directive
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="patchValue"></param>
         /// <param name="origin">The origin address of the patch, or -1 if none is specified.</param>
@@ -267,8 +267,8 @@ class ErrorDirective : Directive
                 //if (PatchOrigin >= 0) {
                 //    pass.SetOrigin(PatchOrigin);
                 //}
-                //if (Bank >= 0)
-                //    pass.Bank = Bank;
+                if (Bank >= 0)
+                    pass.Bank = Bank;
                 //pass.SetPatchOffset(PatchOffset);
                 Segment patchSeg = new Segment(PatchOffset);
                 if (PatchOrigin >= 0) patchSeg.Base = (ushort)PatchOrigin;
@@ -321,7 +321,7 @@ class ErrorDirective : Directive
 
     class DefsegDirective : Directive
     {
-        public DefsegDirective(int iInstruction, int iSourceLine, string name, IList<SegmentAttribute> attributes, out Error error) 
+        public DefsegDirective(int iInstruction, int iSourceLine, string name, IList<SegmentAttribute> attributes, out Error error)
         :base(iInstruction, iSourceLine) {
             error = Error.None;
             //bool offsetNoneSpecified = false;
@@ -527,7 +527,7 @@ class ErrorDirective : Directive
         }
 
         string VarName;
-        
+
         public override void Process(Pass pass, out Error error) {
             error = Error.None;
 
@@ -544,7 +544,7 @@ class ErrorDirective : Directive
         }
 
         string nsName;
-        
+
         public override void Process(Pass pass, out Error error) {
             error = Error.None;
 
@@ -564,7 +564,7 @@ class ErrorDirective : Directive
     }
 
 
-    
+
     class ConditionalDirective : Directive
     {
         public ConditionalDirective(int iInstruction, int iSourceLine, StringSection directive, StringSection line, out Error error)

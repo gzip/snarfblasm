@@ -4,7 +4,6 @@ using System.Text;
 
 namespace Romulus.Plugin
 {
-
     /// <summary>
     /// Represents an object that allows a builder to specify names or comments for addresses.
     /// </summary>
@@ -13,6 +12,7 @@ namespace Romulus.Plugin
         IBankLabels Ram { get; }
         IBankLabelList Banks { get; }
     }
+
     /// <summary>
     /// Used by IAddressLabels to represent ROM banks.
     /// </summary>
@@ -25,7 +25,10 @@ namespace Romulus.Plugin
         /// <returns>An IBankLabels object for the bank.</returns>
         /// <exception cref="ArgumentException">Thrown if i is less than zero or greater than the number of banks present/supported.</exception>
         IBankLabels this[int i] { get; }
+        int Count { get; }
+        List<IBankLabels> GetBanks();
     }
+
     /// <summary>
     /// Used by IAddressLabels to represent labels within a given bank.
     /// </summary>
@@ -36,5 +39,7 @@ namespace Romulus.Plugin
         void AddLabel(ushort address, string label, string comment);
         void AddArrayLabel(ushort address, string label, int byteCount);
         void AddArrayLabel(ushort address, string label, int byteCount, string comment);
+        byte[] BuildDebugFile(int bank);
+        int BankIndex { get; }
     }
 }

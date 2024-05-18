@@ -28,7 +28,7 @@ namespace snarfblasm
         string _CurrentNamespace = null;
 
         /// <summary>Current bank. Used for debug output.</summary>
-        public int Bank { get; private set; }
+        public int Bank { get; set; }
         /// <summary>Returns true of a .PATCH directive is encountered.</summary>
         public bool HasPatchDirective { get; private set; }
         /// <summary>Most recent non-anonymous, non-local label. Used to identify current scope for local labels.</summary>
@@ -89,7 +89,7 @@ namespace snarfblasm
             if (Assembly == null) throw new InvalidOperationException("Must specify assembly before calling PerformPass.");
 
             InitializeLabelAndDirectivePointers();
-            
+
             BeforePerformPass();
             PerformPass();
             AfterPerformPass();
@@ -164,7 +164,7 @@ namespace snarfblasm
                 //        this.PatchSegments.Add(new PatchSegment(lastPatch.Start + lastPatch.Length, -1, newPatchOffset));
                 //    }
                 //    SetAddress(address);
-                    
+
                 //} else {
                 //    // .ORG (except first) pads to the specified address.
                 //    if (paddingAmt < 0) {
@@ -268,7 +268,7 @@ namespace snarfblasm
         }
 
         /// <summary>
-        /// Call this method only when the next block, ELSE or ELSEIF, is encountered, AND NO BLOCKS HAVE BEEN EXECUTED YET.    
+        /// Call this method only when the next block, ELSE or ELSEIF, is encountered, AND NO BLOCKS HAVE BEEN EXECUTED YET.
         /// </summary>
         /// <param name="conditionMet"></param>
         /// <returns></returns>
@@ -315,7 +315,7 @@ namespace snarfblasm
                     }
                     break;
                 case ConditionalDirective.ConditionalPart.ELSEIF:
-                    // We can treat else/else if like it is not in excluded code (if it IS in excluded code, it will look as if 
+                    // We can treat else/else if like it is not in excluded code (if it IS in excluded code, it will look as if
                     // we already had a block executed, so the else/elseif won't be processed.)
                     if (!inIfStack) {
                         error = new Error(ErrorCode.Missing_Preceeding_If, Error.Msg_NoPreceedingIf, directive.SourceLine);
@@ -335,7 +335,7 @@ namespace snarfblasm
                     }
                     break;
                 case ConditionalDirective.ConditionalPart.ELSE:
-                    // We can treat else/else if like it is not in excluded code (if it IS in excluded code, it will look as if 
+                    // We can treat else/else if like it is not in excluded code (if it IS in excluded code, it will look as if
                     // we already had a block executed, so the else/elseif won't be processed.)
                     if (!inIfStack) {
                         error = new Error(ErrorCode.Missing_Preceeding_If, Error.Msg_NoPreceedingIf, directive.SourceLine);
@@ -377,7 +377,7 @@ namespace snarfblasm
 
                         If_EnterIf(!(bool)ifCondition);
                     }
-                    break; 
+                    break;
                 case ConditionalDirective.ConditionalPart.ENDIF:
                     If_CloseIf();
                     break;
@@ -461,7 +461,7 @@ namespace snarfblasm
         /// <summary>Process the current label, taking into consideration the assembler state with regards to code exclusion (.if blocks)</summary>
         protected virtual void ProcessCurrentLabel() {
             var label = Assembly.Labels[iNextLabel];
-            
+
             if (!InExcludedCode) {
                 bool isAnon = label.name[0] == '~';
 
@@ -479,7 +479,7 @@ namespace snarfblasm
             }
 
             if (Assembly.Directives[iNextDirective] is PatchDirective) {
-                HasPatchDirective = true; 
+                HasPatchDirective = true;
             }
         }
 
@@ -536,7 +536,7 @@ namespace snarfblasm
 
 
         /// <summary>
-        /// Resets the origin address (.ORG). For example, a .PATCH directive resets the origin. Any labels that follow a 
+        /// Resets the origin address (.ORG). For example, a .PATCH directive resets the origin. Any labels that follow a
         /// .PATCH without a .ORG in between should cause an error since there is no origin.
         /// </summary>
         public void ResetOrigin() {
@@ -573,7 +573,7 @@ namespace snarfblasm
         }
 
         /// <summary>
-        /// Selects specified segment. If the segment does not exist, 
+        /// Selects specified segment. If the segment does not exist,
         /// </summary>
         /// <param name="segName"></param>
         /// <returns></returns>
@@ -582,8 +582,8 @@ namespace snarfblasm
             if (!segments.TryGetValue(segName, out newSeg)) {
                 return false;
             }
-            
-            
+
+
             if (this.currentSegment != null) {
                 this.currentSegment.CurrentAddress = this.CurrentAddress;
             }
@@ -605,7 +605,7 @@ namespace snarfblasm
 
         protected abstract void OnSegmentSelected(string name, Segment segment);
 
-      
+
 
         /// <summary>
         /// Prompts the assembler to generate a patch file instead of a plain binary file
@@ -641,7 +641,7 @@ namespace snarfblasm
 
             return result;
         }
-      
+
         #endregion
 
     }
@@ -755,7 +755,7 @@ namespace snarfblasm
 
         public override void OutputWordPadding(int wordCount, ushort fillValue) {
             CurrentAddress += wordCount * 2;
-            
+
         }
 
 
@@ -775,7 +775,7 @@ namespace snarfblasm
             AddSegment(defaultSegmentName, defaultSeg);
             SelectSegment(defaultSegmentName);
         }
-        
+
         protected override void OnSegmentSelected(string name, Segment segment) {
             // Todo: does anything need to happen here?
         }
@@ -936,7 +936,6 @@ namespace snarfblasm
 
             bool isAnonymous = label.name != null && label.name.StartsWith("~");
             if (!isAnonymous) {
-
                 if (label.address < 0x8000) {
                     // RAM
                     Assembler.AddDebugLabel(-1, CurrentAddress, label.name);

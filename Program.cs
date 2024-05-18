@@ -5,6 +5,8 @@ using System.Windows.Forms;
 using System.IO;
 using snarfblasm;
 using Romulus.Patch;
+using Romulus.Plugin;
+using System.Text;
 
 namespace snarfblasm
 {
@@ -37,11 +39,6 @@ namespace snarfblasm
 
                 RunAssembler();
             }
-
-
-#if DEBUG
-            Console.ReadLine();
-#endif
         }
 
         private static void RunAssembler() {
@@ -63,6 +60,10 @@ namespace snarfblasm
                 ShowErrors(asm.GetErrors());
             } else {
                 WriteAssemblerOutput(asm, output);
+            }
+
+            if (switches.DebugOutput == OnOffSwitch.ON) {
+                WriteDebugOutput(asm);
             }
         }
 
@@ -142,6 +143,21 @@ namespace snarfblasm
             }
 
             return ips.CreateIPS();
+        }
+
+        private static void WriteDebugOutput(Assembler asm) {
+            string debugFile = Path.ChangeExtension(sourceFile, ".mlb");
+
+            StreamWriter stream = new StreamWriter(debugFile);
+            stream.Write(Encoding.ASCII.GetString(asm.Labels.Ram.BuildDebugFile(-1)));
+
+            List<IBankLabels> banks = asm.Labels.Banks.GetBanks();
+            foreach(IBankLabels bank in banks) {
+                stream.Write(Encoding.ASCII.GetString(bank.BuildDebugFile(bank.BankIndex)));
+            }
+
+            Console.WriteLine("Debug file written to {0:S}", debugFile);
+            stream.Close();
         }
 
         static void asm_PhaseStarted(object sender, Assembler.PhaseEventArgs e) {
@@ -224,7 +240,7 @@ namespace snarfblasm
 
         private static bool ProcessSwitch(string arg, out bool error) {
             error = false;
-            
+
             // Parse out switch name and parameter, and remove leading "-"
             string switchName;
             string switchValue = null;
@@ -341,9 +357,9 @@ namespace snarfblasm
         private static void ParseOffset(string value, out bool invalid) {
             invalid = false;
 
-            if (value.Length == 0) { 
-                invalid = true; 
-                return; 
+            if (value.Length == 0) {
+                invalid = true;
+                return;
             }
 
             bool hex = false;
@@ -379,27 +395,27 @@ namespace snarfblasm
         }
         #endregion
 
-        const string HelpText = 
+        const string HelpText =
 @"snarfblASM 6502 assembler - syntax
     snarfblasm sourceFile [destFile] [switches]
-    
+
     switches:
         -CHECKING:OFF/ON/SIGNED
             Overflow checking in expressions
         -OFFSET:value
-            value should be a decimal, $hex, or 0xhex offset to 
+            value should be a decimal, $hex, or 0xhex offset to
             patch the dest file
         -INVALID[:OFF/ON]
             Invalid opcodes are allowed (ON)
         -IPS[:OFF/ON]
             Output IPS format (ON)
         -DBG[:OFF/ON]
-            Produce FCEUX symbol files
+            Produce Mesen 2 mlb symbol file
 
     Example: snarfblasm source.asm -CHECKING:ON -ASM6 -IPS:OFF
 ";
         static bool helpShown = false;
-          
+
         private static void ShowHelp() {
             if (!helpShown)
               Console.WriteLine(HelpText);

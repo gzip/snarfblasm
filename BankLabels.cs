@@ -20,13 +20,18 @@ namespace snarfblasm
         }
     }
 
-    class BankLabelList : IBankLabelList 
+    class BankLabelList : IBankLabelList
     {
-        List<BankLabels> banks = new List<BankLabels>();
         const int bankIndexLimit = 255;
 
-        internal IList<BankLabels> GetBanks() {
+        List<IBankLabels> banks = new List<IBankLabels>();
+
+        public List<IBankLabels> GetBanks() {
             return banks;
+        }
+
+        public int Count {
+            get { return GetBanks().Count; }
         }
 
         public IBankLabels this[int bankIndex] {
@@ -70,7 +75,6 @@ namespace snarfblasm
         internal Dictionary<ushort, addressData> GetLabels() {
             return Labels;
         }
-
 
         public BankLabels(int bankIndex) {
             BankIndex = bankIndex;
@@ -119,21 +123,38 @@ namespace snarfblasm
         }
 
         /// <summary>
-        /// Creates .NL files for the FCEUX debugger
+        /// Creates .mlb files for the Mesen 2 debugger
         /// </summary>
         /// <param name="bankLabels"></param>
-        public byte[] BuildNlFile() {
+        public byte[] BuildDebugFile(int bank) {
             MemoryStream outputStream = new MemoryStream();
             StreamWriter output = new StreamWriter(outputStream);
 
-
-
+            string nlEntry = "";
             var labels = GetLabels();
-            foreach (var entry in labels) {
-                var entryData = entry.Value;
+            foreach (var entry in labels)
+            {
+                uint val = entry.Key;
+                string name = entry.Value.label;
+                string comment = entry.Value.comment;
 
-                string countString = (entryData.size > 0) ? ("/" + entryData.size.ToString("X")) : (string.Empty);
-                string nlEntry = "$" + entry.Key.ToString("X4") + countString + "#" + entryData.label + "#" + entryData.comment;
+                if (bank >= 0) {
+                    val = (uint)((val >= 0xC000 ? val - 0x4000 : val) + (bank - 2) * 0x4000);
+                    nlEntry = "NesPrgRom:" + val.ToString("X") + ":" + name;
+                } else {
+                    if (val < 0x2000) {
+                        nlEntry = "NesInternalRam:" + val.ToString("X4") + ":" + name;
+                    } else if (val >= 0x6000 && val < 0x8000) {
+                        val -= 0x6000;
+                        nlEntry = "NesSaveRam:" + val.ToString("X4") + ":" + name;
+                    } else {
+                        nlEntry = "NesMemory:" + val.ToString("X4") + ":" + name;
+                    }
+                }
+
+                if (comment != null) {
+                    nlEntry += ":" + comment;
+                }
 
                 output.WriteLine(nlEntry);
             }
