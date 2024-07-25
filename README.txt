@@ -1,23 +1,32 @@
 snarfblASM 6502 Assembler
   by snarfblam
   
-Version 1.2
+Version 1.3
 http://snarfblam.com/words  
 snarfblam@snarfblam.com
   
 Command Line ----------------------------------------------------------------
 
-snarfblasm sourceFile [destFile] [switches]
+    snarfblasm sourceFile [destFile] [switches]
+
     switches:
         -CHECKING:OFF/ON/SIGNED
             Overflow checking in expressions
-        -OFFSET:value
-            value should be a decimal, $hex, or 0xhex offset to patch the dest file
+        -DBG[:OFF/ON]
+            Produce a Mesen 2 mlb symbol file
         -INVALID[:OFF/ON]
             Invalid opcodes are allowed (ON)
-        -IPS[:OFF/ON]
-            Output IPS format (ON)
-            
+        -NEWER[:OFF/ON]
+            Compiles only if source file is newer than destination (OFF)
+        -OFFSET:value
+            Patch bin output to the destination file at the specified offset.
+            Value should be an integer or a hex value formatted as $FF or 0xFF.
+
+    An IPS patch file will be output automatically if patch segments are found.
+    Otherwise a raw binary file will be output.
+
+    Example: snarfblasm source.asm -CHECKING:ON
+
 Syntax ----------------------------------------------------------------------
 
 The snarfblASM syntax is pretty much standard 6502 assembler syntax. Comments start with a semi-colon. Directives should be preceeded by a dot (unless the -d switch is specified). A label may appear on it's own line, or preceeding an instruction or directive. There can be multiple labels on a line.

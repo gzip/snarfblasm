@@ -47,7 +47,19 @@ namespace snarfblasm
                 return;
             }
 
+
             Assembler asm = new Assembler(Path.GetFileName(sourceFile), fileSystem.GetFileText(sourceFile), fileSystem);
+            destFile = GetDestFilePath(asm);
+
+            if (switches.NewerOutput == OnOffSwitch.ON && File.Exists(destFile)) {
+                DateTime sourceDate = File.GetLastWriteTime(sourceFile);
+                DateTime destDate = File.GetLastWriteTime(destFile);
+                if (destDate > sourceDate) {
+                    Console.WriteLine("Notice: Result is newer than source, skipping {0:S}.", Path.GetFileName(sourceFile));
+                    return;
+                }
+            }
+
             asm.OverflowChecking = switches.Checking ?? OverflowChecking.None;
             AddressLabels asmLabels = new AddressLabels();
             asm.Labels = asmLabels;
@@ -67,6 +79,26 @@ namespace snarfblasm
             }
         }
 
+        private static string GetDestFilePath(Assembler asm) {
+            if (destFile == null) {
+                bool isIPS = asm.HasPatchSegments;
+                string outputExtension = isIPS ? ".ips" : ".bin";
+
+                if (Path.GetExtension(sourceFile).Equals(outputExtension, StringComparison.InvariantCultureIgnoreCase)) {
+                    // If the input file is stupidly named (.ips or .bin), we append the extension (e.g. input.bin.bin) so we don't overwrite the source.
+                    destFile = sourceFile + outputExtension;
+                } else {
+                    if (isIPS) {
+                        destFile = Path.ChangeExtension(sourceFile, ".ips");
+                    } else {
+                        destFile = Path.ChangeExtension(sourceFile, ".bin");
+                    }
+                }
+            }
+
+            return destFile;
+        }
+
         private static void WriteAssemblerOutput(Assembler asm, byte[] output) {
             bool isPseudoFile;
             bool isIPS = asm.HasPatchSegments;
@@ -78,23 +110,13 @@ namespace snarfblasm
                     // Pseudo-files such as %input% and %clip% shouldn't get an extension-change
                     destFile = sourceFile;
                 } else {
-                    if (Path.GetExtension(sourceFile).Equals(outputExtension, StringComparison.InvariantCultureIgnoreCase)) {
-                        // If the input file is stupidly named (.ips or .bin), we append the extension (e.g. input.bin.bin) so we don't overwrite the source.
-                        destFile += outputExtension;
-                    } else {
-                        if (isIPS) {
-                            destFile = Path.ChangeExtension(sourceFile, ".ips");
-                        } else {
-                            destFile = Path.ChangeExtension(sourceFile, ".bin");
-                        }
-                    }
+                    destFile = GetDestFilePath(asm);
                 }
             } else {
                 isPseudoFile = FileReader.IsPseudoFile(destFile);
             }
 
-
-            if (isIPS) {
+            if (asm.HasPatchSegments) {
                 if (switches.PatchOffset != null) {
                     Console.WriteLine("Warning: Output type is IPS file. Offset argument will be ignored.");
                 }
@@ -281,12 +303,12 @@ namespace snarfblasm
                         error = true;
                     }
                     break;
-                case "IPS":
-                    if (switches.IpsOutput == null) {
+                case "NEWER":
+                    if (switches.NewerOutput == null) {
                         if (switchValue == null)
-                            switches.IpsOutput = OnOffSwitch.ON;
+                            switches.NewerOutput = OnOffSwitch.ON;
                         else
-                            switches.IpsOutput = ParseOnOff(switchName, switchValue, out error);
+                            switches.NewerOutput = ParseOnOff(switchName, switchValue, out error);
                     } else {
                         ShowDuplicateSwitchError(switchName);
                         error = true;
@@ -402,17 +424,20 @@ namespace snarfblasm
     switches:
         -CHECKING:OFF/ON/SIGNED
             Overflow checking in expressions
-        -OFFSET:value
-            value should be a decimal, $hex, or 0xhex offset to
-            patch the dest file
+        -DBG[:OFF/ON]
+            Produce a Mesen 2 mlb symbol file
         -INVALID[:OFF/ON]
             Invalid opcodes are allowed (ON)
-        -IPS[:OFF/ON]
-            Output IPS format (ON)
-        -DBG[:OFF/ON]
-            Produce Mesen 2 mlb symbol file
+        -NEWER[:OFF/ON]
+            Compiles only if source file is newer than destination (OFF)
+        -OFFSET:value
+            Patch bin output to the destination file at the specified offset.
+            Value should be an integer or a hex value formatted as $FF or 0xFF.
 
-    Example: snarfblasm source.asm -CHECKING:ON -ASM6 -IPS:OFF
+    An IPS patch file will be output automatically if patch segments are found.
+    Otherwise a raw binary file will be output.
+
+    Example: snarfblasm source.asm -CHECKING:ON
 ";
         static bool helpShown = false;
 
@@ -519,11 +544,11 @@ namespace snarfblasm
 
     struct ProgramSwitches
     {
-        public int? PatchOffset;
         public OverflowChecking? Checking;
-        public OnOffSwitch? InvalidOpsAllowed;
-        public OnOffSwitch? IpsOutput;
         public OnOffSwitch? DebugOutput;
+        public OnOffSwitch? InvalidOpsAllowed;
+        public OnOffSwitch? NewerOutput;
+        public int? PatchOffset;
     }
 
     enum OnOffSwitch
