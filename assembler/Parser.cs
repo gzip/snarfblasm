@@ -49,7 +49,7 @@ namespace snarfblasm
 
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="line">The line of code to parse.</param>
         /// <param name="sourceLine">The line number of the code file.</param>
@@ -150,7 +150,7 @@ namespace snarfblasm
                 // Todo: generate .SEGMENT directive for the just-defined segment
                 return;
             }
-            
+
             var iEquals = line.IndexOf('=');
             if (iEquals < 0) {
                 error = new Error(ErrorCode.Expected_SegAttr, Error.Msg_ExpectedSegAttr, iSourceLine);
@@ -170,12 +170,12 @@ namespace snarfblasm
             if (error.IsError) return;
 
             segAttributes.Add(new SegmentAttribute(name.ToString(), valueString.ToString()));
-            
+
         }
 
         /// <param name="enterSegment">If true, a SEGMENT directive will be generated after the DEFSEG directive.</param>
         private void GenerateSegDef(bool enterSegment) {
-            
+
             //assembly.Directives.Add(new OrgDirective(NextInstructionIndex, sourceLine, new AsmValue(line.ToString())));
         }
 
@@ -210,7 +210,7 @@ namespace snarfblasm
                 var newAddressing = addressing;
                 if (TryZeroPageEqivalent(ref newAddressing)) {
                     opcodeVal = Opcode.FindOpcode(instruction, newAddressing, Assembler.AllowInvalidOpcodes);
-                    if (opcodeVal >= 0) addressing = newAddressing; // Keep the zero-page addressing 
+                    if (opcodeVal >= 0) addressing = newAddressing; // Keep the zero-page addressing
                 }
             }
 
@@ -430,7 +430,7 @@ namespace snarfblasm
             } else if (StringEquals(directiveName, "base", true)) {
                 assembly.Directives.Add(new BaseDirective(NextInstructionIndex, sourceLine, new AsmValue(line.ToString())));
             } else if (StringEquals(directiveName, "incbin", true)) {
-                assembly.Directives.Add(new IncBinDirective(NextInstructionIndex, sourceLine, line));
+                assembly.Directives.Add(new IncBinDirective(NextInstructionIndex, sourceLine, line, Assembler.asmPath));
             } else if (StringEquals(directiveName, "error", true)) {
                 assembly.Directives.Add(new ErrorDirective(NextInstructionIndex, sourceLine, line));
             } else if (StringEquals(directiveName, "patch", true)) {
@@ -705,7 +705,7 @@ namespace snarfblasm
 
         //    for (int i = 0; i < Opcode.allOps.Length; i++) {
         //        if (StringEquals(ops[i].name, instruction, true)) {
-        //            // Note that the instruction exists. We need to tell the user whether 
+        //            // Note that the instruction exists. We need to tell the user whether
         //            // an instruction does not exist or the desired addressing mode is not available.
         //            instructionFound = true;
 

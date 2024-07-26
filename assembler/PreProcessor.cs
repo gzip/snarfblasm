@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using Romulus;
 
 namespace snarfblasm
@@ -44,6 +45,15 @@ namespace snarfblasm
                     if (includeFile.Length >= 2 && includeFile[0] == '\"' && includeFile[includeFile.Length - 1] == '\"') {
                         includeFile = includeFile.Substring(1, includeFile.Length - 2).Trim();
                     }
+
+                    // favor file relative to source file
+                    var startPath = Path.GetDirectoryName(assembler.asmPath) + "\\";
+                    var relFile = startPath + includeFile;
+
+                    if (File.Exists(relFile)) {
+                        includeFile = relFile;
+                    }
+
                     if (assembler.FileSystem.FileExists(includeFile)) {
                         ProcessInclude(output, files, includeFile);
                     } else {
@@ -73,7 +83,7 @@ namespace snarfblasm
         private bool IsIncludeLine(StringSection line) {
             if (line.Length < includeDirective.Length) return false;
             var lineStart = line.Substring(0, includeDirective.Length);
-            
+
             if (StringSection.Compare(lineStart, includeDirective, true) == 0) {
                 return true;
             }

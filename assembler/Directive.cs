@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using Romulus;
 using System.Text.RegularExpressions;
 
@@ -82,29 +83,34 @@ namespace snarfblasm
         ////    return new Assignment(instructionIndex, sourceLine, varName, value);
         ////}
     }
-class ErrorDirective : Directive
-        {
-            public ErrorDirective(int instructionIndex, int sourceLine, StringSection msg)
-                : base(instructionIndex, sourceLine) {
-                this.errorMessage = msg.ToString();
-            }
-            string errorMessage;
 
-            public override void Process(Pass pass, out Error error) {
-                error = new Error(ErrorCode.User_Error, errorMessage, SourceLine);
-            }
+    class ErrorDirective : Directive
+    {
+        public ErrorDirective(int instructionIndex, int sourceLine, StringSection msg)
+            : base(instructionIndex, sourceLine) {
+            this.errorMessage = msg.ToString();
         }
+        string errorMessage;
+
+        public override void Process(Pass pass, out Error error) {
+            error = new Error(ErrorCode.User_Error, errorMessage, SourceLine);
+        }
+    }
 
     class IncBinDirective : Directive
     {
-        public IncBinDirective(int instructionIndex, int sourceLine, StringSection file)
+        public IncBinDirective(int instructionIndex, int sourceLine, StringSection file, string asmPath)
             : base(instructionIndex, sourceLine) {
 
             file = file.Trim();
             if (file.Length > 1 && file[0] == '\"' && file[file.Length - 1] == '\"')
                 file = file.Substring(1, file.Length - 2);
 
-            this.Filename = file.ToString();
+            // favor file relative to source file
+            var startPath = Path.GetDirectoryName(asmPath) + "\\";
+            var relFile = startPath + file.ToString();
+
+            this.Filename = File.Exists(relFile) ? relFile : file.ToString();
         }
 
         public string Filename { get; private set; }

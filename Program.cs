@@ -48,7 +48,7 @@ namespace snarfblasm
             }
 
 
-            Assembler asm = new Assembler(Path.GetFileName(sourceFile), fileSystem.GetFileText(sourceFile), fileSystem);
+            Assembler asm = new Assembler(sourceFile, fileSystem.GetFileText(sourceFile), fileSystem);
             destFile = GetDestFilePath(asm);
 
             if (switches.NewerOutput == OnOffSwitch.ON && File.Exists(destFile)) {

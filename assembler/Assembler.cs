@@ -11,11 +11,12 @@ namespace snarfblasm
     {
         public Assembler(string asmName, string asm, IFileSystem fileLoader) {
             originalSource = asm;
+            asmPath = asmName;
             this.fileLoader = fileLoader;
 
             // Note that order of instantiation matters here, as some object depend on others in slightly stupid ways that can be fixed in needed to avoid circular issues with instantiation
             parser = new Parser(this);
-            LineManager = new LineManager(asmName);
+            LineManager = new LineManager(Path.GetFileName(asmPath));
             assembly = new AssemblyData(this);
             evaluator = new ExpressionEvaluator(Values);
         }
@@ -25,11 +26,12 @@ namespace snarfblasm
             string asm = reader.ReadToEnd();
 
             originalSource = asm;
+            asmPath = asmName;
             this.fileLoader = fileLoader;
 
             // Note that order of instantiation matters here, as some object depend on others in slightly stupid ways that can be fixed in needed to avoid circular issues with instantiation
             parser = new Parser(this);
-            LineManager = new LineManager(asmName);
+            LineManager = new LineManager(Path.GetFileName(asmPath));
             assembly = new AssemblyData(this);
             evaluator = new ExpressionEvaluator(Values);
         }
@@ -72,6 +74,7 @@ namespace snarfblasm
         IFileSystem fileLoader;
         private List<StringSection> _sourceCode = new List<StringSection>();
         private string originalSource;
+        public string asmPath { get; }
         List<Error> Errors = new List<Error>();
         List<ErrorDetail> errorDetails = new List<ErrorDetail>();
 
