@@ -224,32 +224,25 @@ namespace snarfblasm
         byte[] output;
         IList<PatchSegment> patchSegments;
 
-
-
         public byte[] GetOutput() {
             return output;
         }
 
-
-////#if ROMULUS
-        /// <summary>
-        /// Set to enable debug output.
-        /// </summary>
         public Romulus.Plugin.IAddressLabels Labels { get; set; }
-        public void AddDebugLabel(int bank, int address, string name) {
+
+        public void AddDebugLabel(int bank, int address, string name, string comment) {
             if (Labels != null) {
                 if (bank < 0) {
-                    Labels.Ram.AddLabel((ushort)address, name);
+                    Labels.Ram.AddLabel((ushort)address, name, comment);
                 } else {
-                    Labels.Banks[bank].AddLabel((ushort)address, name);
+                    Labels.Banks[bank].AddLabel((ushort)address, name, comment);
                 }
             }
         }
-////#else
-////        public void AddDebugLabel(int bank, int address, string name) {
-////            // Do nothing
-////        }
-////#endif
+
+        public string GetLineComment(int lineNum) {
+            return Parser.comments[lineNum];
+        }
     }
 
     public interface IFileSystem{

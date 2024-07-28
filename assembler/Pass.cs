@@ -667,6 +667,11 @@ namespace snarfblasm
             var currentLine = Assembly.ParsedInstructions[iCurrentInstruction];
             var opcode = Opcode.allOps[currentLine.opcode];
 
+            string comment = Assembler.GetLineComment(currentLine.sourceLine);
+            if (comment.Length != 0) {
+                Assembler.AddDebugLabel(Bank, CurrentAddress, "", comment);
+            }
+
             bool SingleByteOperand = false;
             if (currentLine.operandExpression != null) {
                 // If an AsmValue has not been resolved to a literal value yet, it is because it references a label, and thus must be 16-bit
@@ -936,13 +941,14 @@ namespace snarfblasm
 
             bool isAnonymous = label.name != null && label.name.StartsWith("~");
             if (!isAnonymous) {
+                string comment = Assembler.GetLineComment(label.SourceLine);
                 if (label.address < 0x8000) {
                     // RAM
-                    Assembler.AddDebugLabel(-1, CurrentAddress, label.name);
+                    Assembler.AddDebugLabel(-1, CurrentAddress, label.name, comment);
                 }
                 if (Bank >= 0) {
                     // ROM
-                    Assembler.AddDebugLabel(Bank, CurrentAddress, label.name);
+                    Assembler.AddDebugLabel(Bank, CurrentAddress, label.name, comment);
                 }
             }
         }

@@ -12,6 +12,8 @@ namespace snarfblasm
 
         private readonly Assembler Assembler;
         private AssemblyData assembly { get; set; }
+        public string commentBuffer { get; set; } = "";
+        public string[] comments { get; set; } = new String[5000];
 
         public Parser(Assembler assembler) {
             this.Assembler = assembler;
@@ -55,7 +57,18 @@ namespace snarfblasm
         /// <param name="sourceLine">The line number of the code file.</param>
         void ParseLine(StringSection line, int iSourceLine, out Error error) {
             line = line.TrimLeft();
-            RemoveComments(ref line);
+            string lineComment = ParseComments(ref line);
+
+            // string together comments that have no code on the same line, otherwise they wouldn't be output
+            if (lineComment != "")
+            {
+                if (commentBuffer == "") {
+                    commentBuffer = lineComment;
+                } else {
+                    commentBuffer += "\n" + lineComment;
+                }
+            }
+
             line = line.TrimRight();
 
             if (DefsegInProgress) {
@@ -63,7 +76,6 @@ namespace snarfblasm
             }
 
             error = Error.None;
-
 
             int newInstructionIndex = assembly.ParsedInstructions.Count;
 
@@ -114,6 +126,10 @@ namespace snarfblasm
             //var symbol = GrabSimpleName(ref line);
             // if (symbol.IsEmpty) break;
             line = line.TrimLeft();
+
+            // store comment for later output and reset buffer
+            comments[iSourceLine] = new String(commentBuffer.ToCharArray());
+            commentBuffer = "";
 
             if (ParseDirective(symbol, line, iSourceLine, out error))
                 return;
@@ -258,9 +274,10 @@ namespace snarfblasm
             }
         }
 
-        private void RemoveComments(ref StringSection line) {
+        private string ParseComments(ref StringSection line) {
             // ; denotes a comment, except within a string
             bool inString = false;
+            string comment = "";
 
             for (int i = 0; i < line.Length; i++) {
                 if (inString) {
@@ -271,14 +288,15 @@ namespace snarfblasm
                     }
                 } else {
                     if (line[i] == ';') { // Comment
+                        comment = line.Substring(i + 1).Trim().ToString();
                         line = line.Substring(0, i);
-                        return;
+                        return comment;
                     } else if (line[i] == '\"') { // Start of string
                         inString = true;
                     }
-
                 }
             }
+            return comment;
         }
 
 
@@ -597,7 +615,6 @@ namespace snarfblasm
             while (charCount < line.Length && line[charCount] == labelChar)
                 charCount++;
 
-
             if (labelChar == '+') {
                 assembly.AnonymousLabels.AddPlusLabel(charCount, iSourceLine);
             } else if (labelChar == '-') {
@@ -679,13 +696,6 @@ namespace snarfblasm
             var result = line.Substring(0, iColon).Trim();
             line = line.Substring(iColon + 1);
             return new Identifier(result.ToString(), null);
-        }
-
-        private static void StripComments(ref StringSection line) {
-            int iComment = line.IndexOf(';');
-            if (iComment >= 0)
-                line = line.Substring(0, iComment);
-            line = line.Trim();
         }
 
         private static bool StringEquals(StringSection a, StringSection b, bool ignoreCase) {

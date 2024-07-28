@@ -36,6 +36,8 @@ namespace snarfblasm
         public override void Process(Pass pass, out Error error) {
             error = Error.None;
 
+            string comment = pass.Assembler.GetLineComment(SourceLine);
+
             if (Value.IsLiteral) {
                 pass.Assembler.Values.SetValue(Variable, Value.Literal,IsLabel, out error);
                 if (error.IsError) { // Add source line
@@ -43,7 +45,7 @@ namespace snarfblasm
                 }
                 if (IsLabel) {
                     int bank = pass.Bank;
-                    pass.Assembler.AddDebugLabel(bank, Value.Literal.Value, Variable.ToString());
+                    pass.Assembler.AddDebugLabel(bank, Value.Literal.Value, Variable.ToString(), comment);
                 }
             } else {
                 StringSection exp = Value.Expression;
@@ -56,7 +58,8 @@ namespace snarfblasm
                 }else if (IsLabel){
                     int bank = pass.Bank;
                     if (bank < 0) bank = 0;
-                    pass.Assembler.AddDebugLabel(bank, expressionValue.Value, Variable.ToString());
+
+                    pass.Assembler.AddDebugLabel(bank, expressionValue.Value, Variable.ToString(), comment);
                 }
 
                 if (!exp.IsNullOrEmpty) {

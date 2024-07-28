@@ -153,7 +153,7 @@ namespace snarfblasm
                 }
 
                 if (comment != null) {
-                    nlEntry += ":" + comment;
+                    nlEntry += ":" + comment.Replace("\n", "\\n").Replace("\r", "");
                 }
 
                 output.WriteLine(nlEntry);
