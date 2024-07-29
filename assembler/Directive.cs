@@ -744,6 +744,7 @@ namespace snarfblasm
                 error = default(Error);
                 for (int i = 0; i < bytes.Count; i++) {
                     pass.WriteByte(bytes[i]);
+                    pass.CurrentAddress += 1;
                 }
             }
         }
