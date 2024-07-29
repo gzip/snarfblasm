@@ -241,7 +241,8 @@ namespace snarfblasm
         }
 
         public string GetLineComment(int lineNum) {
-            return Parser.comments[lineNum];
+            string comment = Parser.comments[lineNum];
+            return String.IsNullOrEmpty(comment) ? "" : comment;
         }
     }
 

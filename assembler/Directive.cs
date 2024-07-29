@@ -19,6 +19,13 @@ namespace snarfblasm
         public int SourceLine { get; private set; }
 
         public abstract void Process(Pass pass, out Error error);
+
+        public void AddLabel (Pass pass) {
+            string comment = pass.Assembler.GetLineComment(SourceLine);
+            if (!String.IsNullOrEmpty(comment)) {
+                pass.Assembler.AddDebugLabel(pass.Bank, pass.CurrentAddress, "", comment);
+            }
+        }
     }
 
     class Assignment : Directive
@@ -125,6 +132,8 @@ namespace snarfblasm
         public override void Process(Pass pass, out Error error) {
             error = Error.None;
 
+            AddLabel(pass);
+
             if (pass.EmitOutput) {
                 using (var fileStream = pass.Assembler.FileSystem.GetFileReadStream(Filename)) {
 
@@ -139,11 +148,12 @@ namespace snarfblasm
                         readBytes = fileStream.Read(buffer, 0, buffer.Length);
                         totalBytesRead += readBytes;
                     }
-                if (totalBytesRead != cachedFileSize) {
-                    error = new Error(ErrorCode.File_Error, string.Format(Error.Msg_CantAccessFile_name, Filename), SourceLine);
-                }
 
-                pass.CurrentAddress += (int)totalBytesRead;
+                    if (totalBytesRead != cachedFileSize) {
+                        error = new Error(ErrorCode.File_Error, string.Format(Error.Msg_CantAccessFile_name, Filename), SourceLine);
+                    }
+
+                    pass.CurrentAddress += (int)totalBytesRead;
                 }
             } else {
                 if (pass.Assembler.FileSystem.FileExists(Filename)) {
@@ -165,8 +175,6 @@ namespace snarfblasm
             : base(instructionIndex, sourceLine) {
             this.Address = address;
         }
-
-
 
         public AsmValue Address { get; set; }
         public override void Process(Pass pass, out Error error) {
@@ -203,6 +211,7 @@ namespace snarfblasm
         }
 
     }
+
     class PatchDirective : Directive
     {
         public PatchDirective(int instructionIndex, int sourceLine, string patchValue)
@@ -224,7 +233,6 @@ namespace snarfblasm
             origin = -1;
             bank = -1;
             bool hex = false;
-
 
             patchValue = patchValue.Trim();
             if (patchValue.StartsWith("$")) {
@@ -254,7 +262,8 @@ namespace snarfblasm
             int result;
             if (int.TryParse(patchValue, hex ? System.Globalization.NumberStyles.HexNumber : System.Globalization.NumberStyles.Integer, null, out result)) {
                 bank = (result - 0x10) / 0x4000;
-                return result;
+                origin = 0x8000 + (result - 0x10) % 0x4000;
+                return bank * 0x4000 + (origin % 0x4000) + 0x10;
             } else {
                 return  -1;
             }
@@ -289,6 +298,7 @@ namespace snarfblasm
         }
 
     }
+
     class BaseDirective : Directive
     {
         public BaseDirective(int instructionIndex, int sourceLine, AsmValue address)
@@ -326,7 +336,6 @@ namespace snarfblasm
         }
 
     }
-
 
     class DefsegDirective : Directive
     {
@@ -726,6 +735,7 @@ namespace snarfblasm
         char invalidChar = '\0';
 
         public override void Process(Pass pass, out Error error) {
+            AddLabel(pass);
             if (oddNumberOfDigits) {
                 error = new Error(ErrorCode.Invalid_Directive_Value, Error.Msg_UnpairedHexDigit, SourceLine);
             } else if (invalidChar != '\0') {
@@ -736,7 +746,6 @@ namespace snarfblasm
                     pass.WriteByte(bytes[i]);
                 }
             }
-
         }
     }
 
@@ -759,6 +768,8 @@ namespace snarfblasm
             error = Error.None;
 
             var expressionList = line;
+
+            AddLabel(pass);
 
             while (!expressionList.IsNullOrEmpty) {
                 // STRING is interpreted as a series of ASCII bytes
@@ -829,6 +840,7 @@ namespace snarfblasm
                 }
 
             }
+
         }
 
         private void EmitData(Pass pass, ref Error error, LiteralValue value) {

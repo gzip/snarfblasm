@@ -112,9 +112,10 @@ namespace snarfblasm
                 data = default(addressData);
             }
 
-            if (label != null)
+            // add new or updated data
+            if (!String.IsNullOrEmpty(label))
                 data.label = label;
-            if (comment != null)
+            if (!String.IsNullOrEmpty(comment))
                 data.comment = comment;
             if (byteCount > 0)
                 data.size = byteCount;
@@ -140,7 +141,7 @@ namespace snarfblasm
 
                 if (bank >= 0) {
                     val = (uint)((val >= 0xC000 ? val - 0x4000 : val) + (bank - 2) * 0x4000);
-                    nlEntry = "NesPrgRom:" + val.ToString("X") + ":" + name;
+                    nlEntry = "NesPrgRom:" + val.ToString("X4") + ":" + name;
                 } else {
                     if (val < 0x2000) {
                         nlEntry = "NesInternalRam:" + val.ToString("X4") + ":" + name;
@@ -152,7 +153,7 @@ namespace snarfblasm
                     }
                 }
 
-                if (comment != null) {
+                if (!String.IsNullOrEmpty(comment)) {
                     nlEntry += ":" + comment.Replace("\n", "\\n").Replace("\r", "");
                 }
 

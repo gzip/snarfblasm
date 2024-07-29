@@ -15,6 +15,13 @@ namespace snarfblasm
         public string commentBuffer { get; set; } = "";
         public string[] comments { get; set; } = new String[5000];
 
+        private void StoreComment(int sourceLine) {
+            if (commentBuffer != "") {
+                comments[sourceLine] = new String(commentBuffer.ToCharArray());
+                commentBuffer = "";
+            }
+        }
+
         public Parser(Assembler assembler) {
             this.Assembler = assembler;
         }
@@ -127,9 +134,8 @@ namespace snarfblasm
             // if (symbol.IsEmpty) break;
             line = line.TrimLeft();
 
-            // store comment for later output and reset buffer
-            comments[iSourceLine] = new String(commentBuffer.ToCharArray());
-            commentBuffer = "";
+            // store comment for later output
+            StoreComment(iSourceLine);
 
             if (ParseDirective(symbol, line, iSourceLine, out error))
                 return;
@@ -448,6 +454,7 @@ namespace snarfblasm
             } else if (StringEquals(directiveName, "base", true)) {
                 assembly.Directives.Add(new BaseDirective(NextInstructionIndex, sourceLine, new AsmValue(line.ToString())));
             } else if (StringEquals(directiveName, "incbin", true)) {
+                StoreComment(sourceLine);
                 assembly.Directives.Add(new IncBinDirective(NextInstructionIndex, sourceLine, line, Assembler.asmPath));
             } else if (StringEquals(directiveName, "error", true)) {
                 assembly.Directives.Add(new ErrorDirective(NextInstructionIndex, sourceLine, line));
@@ -461,16 +468,22 @@ namespace snarfblasm
                     error = new Error(ErrorCode.Expected_LValue, string.Format(Error.Msg_InvalidSymbolName_name, line.ToString()), sourceLine);
                 }
             } else if (StringEquals(directiveName, "hex", true)) {
+                StoreComment(sourceLine);
                 assembly.Directives.Add(new HexDirective(NextInstructionIndex, sourceLine, line));
             } else if (StringEquals(directiveName, "db", true)) {
+                StoreComment(sourceLine);
                 assembly.Directives.Add(new DataDirective(NextInstructionIndex, sourceLine, line, DataDirective.DataType.Bytes));
             } else if (StringEquals(directiveName, "byte", true)) {
+                StoreComment(sourceLine);
                 assembly.Directives.Add(new DataDirective(NextInstructionIndex, sourceLine, line, DataDirective.DataType.Bytes));
             } else if (StringEquals(directiveName, "dw", true)) {
+                StoreComment(sourceLine);
                 assembly.Directives.Add(new DataDirective(NextInstructionIndex, sourceLine, line, DataDirective.DataType.Words));
             } else if (StringEquals(directiveName, "word", true)) {
+                StoreComment(sourceLine);
                 assembly.Directives.Add(new DataDirective(NextInstructionIndex, sourceLine, line, DataDirective.DataType.Words));
             } else if (StringEquals(directiveName, "data", true)) {
+                StoreComment(sourceLine);
                 assembly.Directives.Add(new DataDirective(NextInstructionIndex, sourceLine, line, DataDirective.DataType.Implicit));
             } else if (StringEquals(directiveName, "dsb", true)) {
                 assembly.Directives.Add(new StorageDirective(NextInstructionIndex, sourceLine, line, StorageDirective.DataType.Bytes));
