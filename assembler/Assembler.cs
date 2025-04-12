@@ -15,7 +15,7 @@ namespace snarfblasm
             this.fileLoader = fileLoader;
 
             // Note that order of instantiation matters here, as some object depend on others in slightly stupid ways that can be fixed in needed to avoid circular issues with instantiation
-            parser = new Parser(this);
+            parser = new Parser(this, originalSource);
             LineManager = new LineManager(Path.GetFileName(asmPath));
             assembly = new AssemblyData(this);
             evaluator = new ExpressionEvaluator(Values);
@@ -30,7 +30,7 @@ namespace snarfblasm
             this.fileLoader = fileLoader;
 
             // Note that order of instantiation matters here, as some object depend on others in slightly stupid ways that can be fixed in needed to avoid circular issues with instantiation
-            parser = new Parser(this);
+            parser = new Parser(this, originalSource);
             LineManager = new LineManager(Path.GetFileName(asmPath));
             assembly = new AssemblyData(this);
             evaluator = new ExpressionEvaluator(Values);
@@ -44,7 +44,7 @@ namespace snarfblasm
         internal Parser Parser { get { return parser; } }
         internal AssemblyData Assembly { get { return assembly; } }
         internal Pass CurrentPass { get; private set; }
-        public bool HasPatchSegments { get; private set; }
+        public bool HasPatchSegments { get; set; }
         public int DefaultPatchOffset { get; private set; }
 
         public IFileSystem FileSystem { get { return fileLoader; } }

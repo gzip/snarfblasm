@@ -22,8 +22,9 @@ namespace snarfblasm
             }
         }
 
-        public Parser(Assembler assembler) {
+        public Parser(Assembler assembler, string source) {
             this.Assembler = assembler;
+            this.Assembler.HasPatchSegments = source.IndexOf(".PATCH") != -1 || source.IndexOf(".patch") != -1;
         }
 
         Identifier mostRecentNamedLabel = new Identifier("_nolabel_", null);
