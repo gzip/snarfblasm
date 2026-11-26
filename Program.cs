@@ -12,6 +12,7 @@ namespace snarfblasm
 {
     static class Program
     {
+        const string Version = "1.4";
         static ProgramSwitches switches;
         /// <summary>
         /// The main entry point for the application.
@@ -418,7 +419,7 @@ namespace snarfblasm
         #endregion
 
         const string HelpText =
-@"snarfblASM 6502 assembler - syntax
+@"snarfblASM 6502 assembler v" + Version + @" - syntax
     snarfblasm sourceFile [destFile] [switches]
 
     switches:

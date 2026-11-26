@@ -1,7 +1,7 @@
 snarfblASM 6502 Assembler
   by snarfblam
   
-Version 1.3
+Version 1.4
 http://snarfblam.com/words  
 snarfblam@snarfblam.com
   
