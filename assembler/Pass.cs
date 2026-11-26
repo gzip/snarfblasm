@@ -130,7 +130,7 @@ namespace snarfblasm
         public byte[] GetOutput() {
             // Get a list of all segments that can have output, in the order they should appear in the ROM
             List<Segment> allSegments = new List<Segment>(this.segments.Values).FindAll(seg => seg.TargetOffset != null);
-            allSegments.Sort((segA, segB) => segB.TargetOffset.Value - segA.TargetOffset.Value);
+            allSegments.Sort((segA, segB) => segA.TargetOffset.Value.CompareTo(segB.TargetOffset.Value));
             int totalSize = 0;
             foreach (var seg in allSegments) totalSize += (int)seg.Output.Length;
 
@@ -630,7 +630,7 @@ namespace snarfblasm
 
             // Get a list of all segments that have output, in the order they should appear in the ROM
             List<Segment> allSegments = new List<Segment>(this.segments.Values).FindAll(seg => seg.TargetOffset != null && seg.Output.Length > 0);
-            allSegments.Sort((segA, segB) => segB.TargetOffset.Value - segA.TargetOffset.Value);
+            allSegments.Sort((segA, segB) => segA.TargetOffset.Value.CompareTo(segB.TargetOffset.Value));
 
             List<PatchSegment> result = new List<PatchSegment>();
             int iOutput = 0;
