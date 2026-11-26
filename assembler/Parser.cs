@@ -13,10 +13,15 @@ namespace snarfblasm
         private readonly Assembler Assembler;
         private AssemblyData assembly { get; set; }
         public string commentBuffer { get; set; } = "";
-        public string[] comments { get; set; } = new String[5000];
+        public string[] comments { get; set; } = new string[0];
 
         private void StoreComment(int sourceLine) {
             if (commentBuffer != "") {
+                if (sourceLine >= comments.Length) {
+                    var resized = comments;
+                    Array.Resize(ref resized, sourceLine + 1);
+                    comments = resized;
+                }
                 comments[sourceLine] = new String(commentBuffer.ToCharArray());
                 commentBuffer = "";
             }
@@ -43,6 +48,7 @@ namespace snarfblasm
         /// <param name="lines"></param>
         public void ParseCode(IList<StringSection> lines) {
             assembly = Assembler.Assembly;
+            comments = new string[lines.Count];
 
             Error error;
             for (int i = 0; i < lines.Count; i++) {
