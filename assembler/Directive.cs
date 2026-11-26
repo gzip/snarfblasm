@@ -261,11 +261,13 @@ namespace snarfblasm
 
             int result;
             if (int.TryParse(patchValue, hex ? System.Globalization.NumberStyles.HexNumber : System.Globalization.NumberStyles.Integer, null, out result)) {
-                bank = (result - 0x10) / 0x4000;
-                origin = 0x8000 + (result - 0x10) % 0x4000;
-                return bank * 0x4000 + (origin % 0x4000) + 0x10;
+                if (result >= 0x10) {
+                    bank = (result - 0x10) / 0x4000;
+                    origin = 0x8000 + (result - 0x10) % 0x4000;
+                }
+                return result;
             } else {
-                return  -1;
+                return -1;
             }
         }
 
